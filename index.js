@@ -70,7 +70,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to travel agency server");
+  res.send("Welcome to Urban services server");
 });
 
 app.listen(port, () => {
