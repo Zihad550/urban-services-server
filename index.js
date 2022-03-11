@@ -26,17 +26,14 @@ async function run() {
     await client.connect();
     const database = client.db("urbanServices");
     const usersCollection = database.collection("users");
+    const electricianServicesCollection = database.collection("electricianServices");
 
     // user routes
     // check if the user is admin
     app.get("/users/:email", async (req, res) => {
       const email = req.params.email;
       const user = await usersCollection.findOne({ email });
-      let isAdmin = false;
-      if (user?.role === "admin") {
-        isAdmin = true;
-      }
-      res.json({ admin: isAdmin });
+      res.json(user);
     });
     // post user
     app.post("/users", async (req, res) => {
@@ -64,6 +61,13 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.json(result);
     });
+
+
+    // get electrician services
+    app.get('/services/electricianServices', async(req, res) => {
+      const result = await electricianServicesCollection.find({}).toArray();
+      res.json(result)
+    })
   } finally {
   }
 }
