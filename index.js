@@ -27,6 +27,8 @@ async function run() {
     const database = client.db("urbanServices");
     const usersCollection = database.collection("users");
     const electricianServicesCollection = database.collection("electricianServices");
+    const workersCollection = database.collection("workers");
+    const servicesCollection = database.collection('services')
 
     // user routes
     // check if the user is admin
@@ -63,11 +65,60 @@ async function run() {
     });
 
 
-    // get electrician services
-    app.get('/services/electricianServices', async(req, res) => {
-      const result = await electricianServicesCollection.find({}).toArray();
+    // worker methods
+    // add worker
+    app.post('/workers', async(req, res) => {
+      const worker = req.body;
+      const result = await workersCollection.insertOne(worker);
       res.json(result)
     })
+
+    // get electricians
+    app.get('/workers/electricians', async(req, res) => {
+      const result = await workersCollection.find({category: 'electricians'}).toArray();
+      res.json(result)
+    });
+
+    // get all plumbers
+    app.get('/workers/plumbers', async(req, res) => {
+      const result = await workersCollection.find({category: 'plumbers'}).toArray();
+      res.json(result);
+    });
+
+    // get all chefs 
+    app.get('/workers/chefs', async(req, res) => {
+      const result = await workersCollection.find({category: 'chefs'}).toArray();
+      res.json(result)
+    })
+
+
+    // service methods
+    // save service
+    app.post('/services', async(req, res) => {
+      const service = req.body;
+      const result = await servicesCollection.insertOne(service);
+      res.json(result)
+    })
+
+    // get electrician services
+    app.get('/services/electricianServices', async(req, res) => {
+      const result = await servicesCollection.find({category: 'electricianService'}).toArray()
+      res.json(result)
+    })
+
+    // get plumber services
+    app.get('/services/plumberServices', async(req, res) => {
+      const result = await servicesCollection.find({category: 'plumberService'}).toArray();
+      res.json(result);
+    });
+
+    // get chef services
+    app.get('/services/chefServices', async(req, res) => {
+      const result = await servicesCollection.find({category: 'chefService'}).toArray();
+      res.json(result);
+    })
+
+    
   } finally {
   }
 }
