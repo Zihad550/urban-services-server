@@ -26,9 +26,9 @@ async function run() {
     await client.connect();
     const database = client.db("urbanServices");
     const usersCollection = database.collection("users");
-    const electricianServicesCollection = database.collection("electricianServices");
     const workersCollection = database.collection("workers");
-    const servicesCollection = database.collection('services')
+    const servicesCollection = database.collection('services');
+    const hiredCollection = database.collection('hired')
 
     // user routes
     // check if the user is admin
@@ -73,6 +73,13 @@ async function run() {
       res.json(result)
     })
 
+    // get worker
+    app.get('/worker/:id', async(req, res) => {
+      console.log(req.params)
+      const result = await workersCollection.findOne({_id:ObjectId(req.params.id)});
+      res.json(result)
+    })
+
     // get workers with role
     app.get('/workers/:role', async(req, res) => {
       console.log(req.params)
@@ -80,7 +87,14 @@ async function run() {
       res.json(result)
     })
 
+    // delete worker
+    app.delete('/workers', async(req, res) => {
+      const result = await workersCollection.deleteOne({_id: ObjectId(req.query.id)});
+      res.json(result)
+    })
+
     
+    app.put('/workers',async())
 
 
     // service methods
@@ -98,11 +112,23 @@ async function run() {
     3. chefServices
      */
     app.get('/services/:service', async(req, res) => {
-      console.log(req.params)
       const result = await servicesCollection.find({category: req.params.service}).toArray()
       res.json(result)
     })
 
+    // delete service
+    app.delete('/services', async(req, res) => {
+      const result = await servicesCollection.deleteOne({_id: ObjectId(req.query.id)});
+      res.json(result)
+    })
+
+
+    // hire route
+    app.post('/hired', async(req, res) => {
+      const hired = req.body;
+      const result = await hiredCollection.insertOne(hired);
+      res.json(result)
+    })
     
 
     
