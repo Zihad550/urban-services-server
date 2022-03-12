@@ -73,18 +73,12 @@ async function run() {
       res.json(result)
     })
 
-    // get all workers
-    app.get('/workers', async(req, res) => {
-      const result = await workersCollection.find({}).toArray();
-      res.json(result)
-    })
-
-    // get workers according to their role
+    // get workers with role
     app.get('/workers/:role', async(req, res) => {
       console.log(req.params)
       const result = await workersCollection.find({category: req.params.role}).toArray();
       res.json(result)
-    });
+    })
 
     
 
@@ -98,22 +92,18 @@ async function run() {
     })
 
     // get electrician services
-    app.get('/services/electricianServices', async(req, res) => {
-      const result = await servicesCollection.find({category: 'electricianService'}).toArray()
+    /* 
+    1. electricianServices
+    2. plumberServices
+    3. chefServices
+     */
+    app.get('/services/:service', async(req, res) => {
+      console.log(req.params)
+      const result = await servicesCollection.find({category: req.params.service}).toArray()
       res.json(result)
     })
 
-    // get plumber services
-    app.get('/services/plumberServices', async(req, res) => {
-      const result = await servicesCollection.find({category: 'plumberService'}).toArray();
-      res.json(result);
-    });
-
-    // get chef services
-    app.get('/services/chefServices', async(req, res) => {
-      const result = await servicesCollection.find({category: 'chefService'}).toArray();
-      res.json(result);
-    })
+    
 
     
   } finally {
