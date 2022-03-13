@@ -94,7 +94,6 @@ async function run() {
     })
 
     
-    app.put('/workers',async())
 
 
     // service methods
@@ -127,6 +126,12 @@ async function run() {
     app.post('/hired', async(req, res) => {
       const hired = req.body;
       const result = await hiredCollection.insertOne(hired);
+      res.json(result)
+    })
+
+    // get booked workers & tolets
+    app.get('/hired', async(req, res) => {
+      const result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
       res.json(result)
     })
     
