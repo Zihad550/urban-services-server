@@ -45,6 +45,8 @@ async function run() {
       res.json(result);
     });
 
+
+
     // update user
     app.put("/users", async (req, res) => {
       const user = req.body;
@@ -71,6 +73,12 @@ async function run() {
       res.json(result);
     });
 
+    // get all users
+    app.get('/users', async(req, res) => {
+      const result = await usersCollection.find({}).toArray();
+      res.json(result)
+    })
+
 
     // worker methods
     // add worker
@@ -82,7 +90,6 @@ async function run() {
 
     // get worker
     app.get('/worker/:id', async(req, res) => {
-      console.log(req.params)
       const result = await workersCollection.findOne({_id:ObjectId(req.params.id)});
       res.json(result)
     })
@@ -97,6 +104,26 @@ async function run() {
     // delete worker
     app.delete('/workers', async(req, res) => {
       const result = await workersCollection.deleteOne({_id: ObjectId(req.query.id)});
+      res.json(result)
+    });
+
+    // available workers 
+    app.get('/availableWorkers', async(req, res) => {
+      const result = await workersCollection.find({$or: [{workingStatus: 'free'}, {workingStatus: {$exists: false}}]}).toArray()
+      res.json(result)
+    });
+
+    // busy workers
+    app.get('/busyWorkers', async(req, res) => {
+      const result = await workersCollection.find({workingStatus: 'busy'}).toArray();
+      res.json(result)
+    })
+
+    // working status
+    app.put('/workingStatus', async(req, res) => {
+      const {email, status} = req.body;
+      console.log(email , status)
+      const result = await workersCollection.updateOne({email}, {$set: {workingStatus: status}});
       res.json(result)
     })
 
@@ -150,24 +177,32 @@ async function run() {
     })
 
     // job applications
-    app.get('/applications', async(req, res) => {
+    app.get('/applications', async (req, res) => {
       const applications = await jobApplicationsCollection.find({applicationStatus: 'applied'}).toArray();
       res.json(applications) 
     })
 
     // update application status
-    app.post('/application', async(req, res) => {
-      const email = req.query.email;
-      const result1 = await jobApplicationsCollection.updateOne({ email }, {$set: {applicationStatus: 'approved'}})
-      const result2 = await usersCollection.updateOne({email}, {$set: {role: 'worker'}});
-      res.json({...result1, ...result2})
+    app.put('/application', async(req, res) => {
+      const worker = req.body;
+      const result1 = await jobApplicationsCollection.updateOne({ email:worker.email }, {$set: {applicationStatus: 'approved'}})
+      const result2 = await usersCollection.updateOne({email: worker.email}, {$set: {role: 'worker'}});
+      const result3 = await workersCollection.insertOne(worker)
+      res.json({...result1, ...result2, ...result3})
     })
 
     // delete application
-    app.post('/application', async(req, res) => {
+    app.delete('/application', async(req, res) => {
       const email = req.query.email;
       const result1 = await jobApplicationsCollection.deleteOne({ email })
       res.json({...result1})
+    })
+
+
+    // work routes
+    app.get('/currentWorks', async(req, res) => {
+      const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
+      res.json(result)
     })
     
 
