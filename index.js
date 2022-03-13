@@ -94,8 +94,13 @@ async function run() {
 
     // get workers with role
     app.get('/workers/:role', async(req, res) => {
-      console.log(req.params)
-      const result = await workersCollection.find({category: req.params.role}).toArray();
+      console.log(req.params.role)
+      let result;
+      if(req.params.role === 'undefined'){
+        result = await workersCollection.find({}).toArray()
+      }else{
+        result = await workersCollection.find({category: req.params.role}).toArray();
+      }
       res.json(result)
     })
 
@@ -113,16 +118,17 @@ async function run() {
 
     // busy workers
     app.get('/busyWorkers', async(req, res) => {
-      const result = await workersCollection.find({workingStatus: 'busy'}).toArray();
+      const result = await workersCollection.find({workingStatus: 'working'}).toArray();
       res.json(result)
     })
 
     // working status
     app.put('/workingStatus', async(req, res) => {
-      const {email, status} = req.body;
+      const {email, status, id} = req.body;
       console.log(email , status)
       const result = await workersCollection.updateOne({email}, {$set: {workingStatus: status}});
-      res.json(result)
+      const result2 = await hiredCollection.updateOne({_id: ObjectId(id)}, {$set: {workingStatus: status}})
+      res.json({...result, ...result2})
     })
 
     
@@ -199,10 +205,15 @@ async function run() {
 
     // work routes
     app.get('/currentWorks', async(req, res) => {
-      const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
+      const result = await hiredCollection.find({$and: [{workerEmail: req.query.email}, {workingProgress: '0%'}]}).toArray();
       res.json(result)
     })
     
+    // handle complete work
+    app.put('/complete', async(req, res) => {
+      const result = await hiredCollection.updateOne({_id: ObjectId(req.body.id)}, {$set: {workingProgress: '100%'}});
+      res.json(result)
+    })
 
     
   } finally {
