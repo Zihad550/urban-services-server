@@ -28,7 +28,8 @@ async function run() {
     const usersCollection = database.collection("users");
     const workersCollection = database.collection("workers");
     const servicesCollection = database.collection('services');
-    const hiredCollection = database.collection('hired')
+    const hiredCollection = database.collection('hired');
+    const jobApplicationsCollection = database.collection('jobApplications')
 
     // user routes
     // check if the user is admin
@@ -40,18 +41,24 @@ async function run() {
     // post user
     app.post("/users", async (req, res) => {
       const user = req.body;
-      const result = await usersCollection.insertOne(user);
+      const result = await usersCollection.insertOne({...user, role: 'user'});
       res.json(result);
     });
 
     // update user
     app.put("/users", async (req, res) => {
       const user = req.body;
-      const result = await usersCollection.updateOne(
-        { email: user.email },
-        { $set: user },
-        { upsert: true }
-      );
+      const getUser = await usersCollection.findOne({email: user.email});
+      let result;
+      if(getUser.role){
+         result = await usersCollection.updateOne(
+          { email: user.email },
+          { $set: user },
+          { upsert: true }
+        );
+      }else{
+        result = await usersCollection.updateOne({email: user.email}, {$set: {...user, role: 'user'}}, {upsert:true})
+      }
       res.json(result);
     });
 
@@ -133,6 +140,34 @@ async function run() {
     app.get('/hired', async(req, res) => {
       const result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
       res.json(result)
+    })
+
+    // save job application
+    app.post('/apply', async(req, res) => {
+      const application = req.body;
+      const result = await jobApplicationsCollection.insertOne(application);
+      res.json(result)
+    })
+
+    // job applications
+    app.get('/applications', async(req, res) => {
+      const applications = await jobApplicationsCollection.find({applicationStatus: 'applied'}).toArray();
+      res.json(applications) 
+    })
+
+    // update application status
+    app.post('/application', async(req, res) => {
+      const email = req.query.email;
+      const result1 = await jobApplicationsCollection.updateOne({ email }, {$set: {applicationStatus: 'approved'}})
+      const result2 = await usersCollection.updateOne({email}, {$set: {role: 'worker'}});
+      res.json({...result1, ...result2})
+    })
+
+    // delete application
+    app.post('/application', async(req, res) => {
+      const email = req.query.email;
+      const result1 = await jobApplicationsCollection.deleteOne({ email })
+      res.json({...result1})
     })
     
 
