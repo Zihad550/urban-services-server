@@ -174,7 +174,7 @@ async function run() {
     })
 
     // get all hired workers
-    app.get('/hired', async(req, res) => {
+    app.get('/allHiredWorkers', async(req, res) => {
       const result = await hiredCollection.find({}).toArray();
       res.json();
     })
