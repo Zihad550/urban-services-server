@@ -176,7 +176,7 @@ async function run() {
     // get all hired workers
     app.get('/allHiredWorkers', async(req, res) => {
       const result = await hiredCollection.find({}).toArray();
-      res.json();
+      res.json(result);
     })
 
     // save job application
