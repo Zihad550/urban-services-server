@@ -167,10 +167,16 @@ async function run() {
       res.json(result)
     })
 
-    // get booked workers & tolets
+    // get booked workers & tolets for customer
     app.get('/hired', async(req, res) => {
       const result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
       res.json(result)
+    })
+
+    // get all hired workers
+    app.get('/hired', async(req, res) => {
+      const result = await hiredCollection.find({}).toArray();
+      res.json();
     })
 
     // save job application
