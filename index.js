@@ -11,7 +11,7 @@ const port = process.env.PORT || 8000;
 
 
 //  firebase admin initialization
-var serviceAccount = require("./urban-services-233ae-firebase-adminsdk-qz2o5-0a9259db9b.json");
+var serviceAccount = JSON.parse(process.env.URBAN_SERVICE_ACCOUNT)
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
