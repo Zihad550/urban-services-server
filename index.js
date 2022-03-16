@@ -5,8 +5,18 @@ require("dotenv").config();
 const app = express();
 const ObjectId = require("mongodb").ObjectId;
 const fileUpload = require("express-fileupload");
+var admin = require("firebase-admin");
 
 const port = process.env.PORT || 8000;
+
+
+//  firebase admin initialization
+var serviceAccount = require("./urban-services-233ae-firebase-adminsdk-qz2o5-0a9259db9b.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+
 
 // middle ware
 app.use(cors());
@@ -18,6 +28,25 @@ const client = new MongoClient(process.env.URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+
+// verify user with id token
+async function verifyIdToken(req, res, next){
+    if(req.headers?.authorization?.startsWith('Bearer ')){
+      const idToken = req.headers.authorization.split(' ')[1]
+
+      try{
+        const decodedUser = await admin.auth().verifyIdToken(idToken);
+        req.decodedUserEmail = decodedUser.email;
+        console.log(decodedUser)
+      }
+      catch{
+
+      }
+    }
+  next();
+
+}
 
 async function run() {
   try {
@@ -172,15 +201,24 @@ async function run() {
 
     // hire route
     app.post('/hired', async(req, res) => {
+      
       const hired = req.body;
       const result = await hiredCollection.insertOne(hired);
       res.json(result)
     })
 
     // get booked workers & tolets for customer
-    app.get('/hired', async(req, res) => {
-      const result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
-      res.json(result)
+    app.get('/hired',verifyIdToken, async(req, res) => {
+      console.log(req.headers.authorization)
+      let result;
+      if(req.decodedUserEmail === req.query.email){
+        result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
+        res.json(result)
+      }else{
+        result = {message: 'User not authorized'}
+        res.status(401).json(result)
+      }
+      
     })
 
     // get all hired workers
