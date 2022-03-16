@@ -110,7 +110,7 @@ async function run() {
 
     // get all workers with role
     app.get('/workers/:role', async(req, res) => {
-      const result = await workersCollection.find({role: req.params.role}).toArray();
+      const result = await workersCollection.find({category: req.params.role}).toArray();
       res.json(result)
     })
 
