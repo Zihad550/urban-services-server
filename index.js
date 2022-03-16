@@ -92,15 +92,25 @@ async function run() {
       res.json(result)
     })
 
-    // get workers with role
-    app.get('/workers/:role', async(req, res) => {
-      console.log(req.params.role)
+    // get available workers with role & free workers & tolets
+    app.get('/workers', async(req, res) => {
+      console.log(req.query.role)
       let result;
-      if(req.params.role === 'undefined'){
-        result = await workersCollection.find({}).toArray()
-      }else{
-        result = await workersCollection.find({category: req.params.role}).toArray();
+      if(req.query.role === 'undefined'){
+        result = await workersCollection.find({$and: [{category: {$ne: 'toLet'}},{$or: [{workingStatus: 'free'}, {workingStatus: {$exists: false}}]}]}).toArray()
       }
+      else if(req.query.role === 'tolet'){
+        result = await workersCollection.find({category: 'tolet'}).toArray();
+      }
+      else{
+        result = await workersCollection.find({$and: [{category: req.query.role},{$or: [{workingStatus: 'free'}, {workingStatus: {$exists: false}}]}]}).toArray();
+      }
+      res.json(result)
+    })
+
+    // get all workers with role
+    app.get('/workers/:role', async(req, res) => {
+      const result = await workersCollection.find({role: req.params.role}).toArray();
       res.json(result)
     })
 
