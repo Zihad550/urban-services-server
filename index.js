@@ -183,6 +183,12 @@ async function run() {
       res.json({...result, ...result2})
     })
 
+    // get all workers
+    app.get('/workers', async(req, res) => {
+      const result = await workersCollection.find({}).toArray();
+      res.json(result)
+    })
+
     
 
 
