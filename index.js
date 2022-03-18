@@ -32,9 +32,9 @@ const client = new MongoClient(process.env.URI, {
 
 // verify user with id token
 async function verifyIdToken(req, res, next){
+  console.log(req)
     if(req.headers?.authorization?.startsWith('Bearer ')){
       const idToken = req.headers.authorization.split(' ')[1]
-
       try{
         const decodedUser = await admin.auth().verifyIdToken(idToken);
         req.decodedUserEmail = decodedUser.email;
@@ -126,22 +126,19 @@ async function run() {
       console.log(req.query.role)
       let result;
       if(req.query.role === 'undefined'){
-        result = await workersCollection.find({$and: [{category: {$ne: 'toLet'}},{$or: [{workingStatus: 'free'}, {workingStatus: {$exists: false}}]}]}).toArray()
+        console.log('inside')
+        result = await workersCollection.find({category: {$ne: 'toLet'}}).toArray()
       }
       else if(req.query.role === 'tolet'){
         result = await workersCollection.find({category: 'tolet'}).toArray();
       }
       else{
-        result = await workersCollection.find({$and: [{category: req.query.role},{$or: [{workingStatus: 'free'}, {workingStatus: {$exists: false}}]}]}).toArray();
+        result = await workersCollection.find({category: req.query.role}).toArray();
       }
       res.json(result)
     })
 
-    // get all workers with role
-    app.get('/workers/:role', async(req, res) => {
-      const result = await workersCollection.find({category: req.params.role}).toArray();
-      res.json(result)
-    })
+    
 
     // delete worker
     app.delete('/workers', async(req, res) => {
@@ -151,13 +148,13 @@ async function run() {
 
     // available workers 
     app.get('/availableWorkers', async(req, res) => {
-      const result = await workersCollection.find({$or: [{workingStatus: 'free'}, {workingStatus: {$exists: false}}]}).toArray()
+      const result = await workersCollection.find({$or: [{workingStatus: 'Free'}, {workingStatus: {$exists: false}}]}).toArray()
       res.json(result)
     });
 
     // busy workers
     app.get('/busyWorkers', async(req, res) => {
-      const result = await workersCollection.find({workingStatus: 'working'}).toArray();
+      const result = await workersCollection.find({workingStatus: 'Busy'}).toArray();
       res.json(result)
     })
 
@@ -165,7 +162,12 @@ async function run() {
     app.put('/workingStatus', async(req, res) => {
       const {email, status, id} = req.body;
       console.log(email , status)
-      const result = await workersCollection.updateOne({email}, {$set: {workingStatus: status}});
+      let result1;
+      if(status === 'Working' || status === 'Not Working'){
+        result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Busy'}});
+      }else{
+        result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Free'}})
+      }
       const result2 = await hiredCollection.updateOne({_id: ObjectId(id)}, {$set: {workingStatus: status}})
       res.json({...result, ...result2})
     })
@@ -201,24 +203,15 @@ async function run() {
 
     // hire route
     app.post('/hired', async(req, res) => {
-      
       const hired = req.body;
       const result = await hiredCollection.insertOne(hired);
       res.json(result)
     })
 
-    // get booked workers & tolets for customer
-    app.get('/hired',verifyIdToken, async(req, res) => {
-      console.log(req.headers.authorization)
-      let result;
-      if(req.decodedUserEmail === req.query.email){
-        result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
+    // get booked workers for customers
+    app.get('/hired', async(req, res) => {
+        const result = await hiredCollection.find({customerEmail: req.query.email}).toArray();
         res.json(result)
-      }else{
-        result = {message: 'User not authorized'}
-        res.status(401).json(result)
-      }
-      
     })
 
     // get all hired workers
@@ -257,15 +250,32 @@ async function run() {
     })
 
 
+   
     // work routes
-    app.get('/currentWorks', async(req, res) => {
-      const result = await hiredCollection.find({$and: [{workerEmail: req.query.email}, {workingProgress: '0%'}]}).toArray();
-      res.json(result)
-    })
-    
     // handle complete work
     app.put('/complete', async(req, res) => {
       const result = await hiredCollection.updateOne({_id: ObjectId(req.body.id)}, {$set: {workingProgress: '100%'}});
+      res.json(result)
+    });
+
+    // work request
+    app.get('/work', verifyIdToken, async(req, res) => {
+      console.log(req.decodedUserEmail, req.query.email)
+      if(req.decodedUserEmail === req.query.email){
+        const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
+      res.json(result)
+      }
+      else{
+        res.status(401).json({message: 'user not authorized'})
+      }
+      
+    });
+
+
+    //  tolet routes 
+    // get tolets for customers
+    app.get('/toLets', async(req, res) => {
+      const result = await workersCollection.find({$and: [{email: req.query.email}, {category: 'toLet'}]}).toArray();
       res.json(result)
     })
 
