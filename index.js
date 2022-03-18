@@ -71,8 +71,6 @@ async function run() {
       res.json(result);
     });
 
-
-
     // update user
     app.put("/users", async (req, res) => {
       const user = req.body;
@@ -122,6 +120,7 @@ async function run() {
 
     // get available workers with role & free workers & tolets
     app.get('/workers', async(req, res) => {
+      console.log('here')
       console.log(req.query.role)
       console.log(req.query.filter)
       let result;
@@ -136,6 +135,7 @@ async function run() {
         result = await workersCollection.find({$and: [{applicationStatus: 'Approved'},{category: 'toLet'}]}).toArray();
       }
       else if(req.query.role !== 'toLet' && req.query.filter === '') {
+        console.log('inside ca')
         result = await workersCollection.find({category: req.query.role}).toArray();
       }
       else {
@@ -144,6 +144,11 @@ async function run() {
       res.json(result)
     })
 
+    // get workers for admins
+    app.get('/workers/:role', async(req, res) => {
+      const result = await workersCollection.find({category: req.params.role}).toArray();
+      res.json(result)
+    })
     
 
     // delete worker
