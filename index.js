@@ -120,12 +120,8 @@ async function run() {
 
     // get available workers with role & free workers & tolets
     app.get('/workers', async(req, res) => {
-      console.log('here')
-      console.log(req.query.role)
-      console.log(req.query.filter)
       let result;
       if(req.query.role === 'undefined' && req.query.filter === ''){
-        console.log('inside')
         result = await workersCollection.find({category: {$ne: 'toLet'}}).toArray()
       }
       else if(req.query.role === 'undefined' && req.query.filter){
@@ -135,7 +131,6 @@ async function run() {
         result = await workersCollection.find({$and: [{applicationStatus: 'Approved'},{category: 'toLet'}]}).toArray();
       }
       else if(req.query.role !== 'toLet' && req.query.filter === '') {
-        console.log('inside ca')
         result = await workersCollection.find({category: req.query.role}).toArray();
       }
       else {
@@ -161,7 +156,6 @@ async function run() {
     // working status
     app.put('/workingStatus', async(req, res) => {
       const {email, status, id} = req.body;
-      console.log(email , status)
       let result1;
       if(status === 'Working' || status === 'Not Working'){
         result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Busy'}});
@@ -169,7 +163,7 @@ async function run() {
         result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Free'}})
       }
       const result2 = await hiredCollection.updateOne({_id: ObjectId(id)}, {$set: {workingStatus: status}})
-      res.json({...result, ...result2})
+      res.json({...result1, ...result2})
     })
 
     // all workers
@@ -293,7 +287,6 @@ async function run() {
     // get tolets for customers & admin
     app.get('/toLets', async(req, res) => {
       let result;
-      console.log(req.query.status)
       if(req.query.status === 'Pending'){
         result = await workersCollection.find({$and: [{category: 'toLet'}, {$or: [{applicationStatus: 'Pending'}, {applicationStatus: {$exists: false}}]}]}).toArray();
       }else{
