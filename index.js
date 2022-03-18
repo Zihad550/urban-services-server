@@ -157,17 +157,6 @@ async function run() {
       res.json(result)
     });
 
-    // available workers 
-    app.get('/availableWorkers', async(req, res) => {
-      const result = await workersCollection.find({$or: [{workingStatus: 'Free'}, {workingStatus: {$exists: false}}]}).toArray()
-      res.json(result)
-    });
-
-    // busy workers
-    app.get('/busyWorkers', async(req, res) => {
-      const result = await workersCollection.find({workingStatus: 'Busy'}).toArray();
-      res.json(result)
-    })
 
     // working status
     app.put('/workingStatus', async(req, res) => {
@@ -183,10 +172,10 @@ async function run() {
       res.json({...result, ...result2})
     })
 
-    // get all workers
-    app.get('/workers', async(req, res) => {
+    // all workers
+    app.get('/allWorkers', async(req, res) => {
       const result = await workersCollection.find({}).toArray();
-      res.json(result)
+      res.json(result);
     })
 
     
@@ -289,6 +278,18 @@ async function run() {
 
 
     //  tolet routes 
+    // get all tolets
+    app.get('/allToLets', async(req, res) => {
+      let result = await workersCollection.find({category: 'toLet'}).toArray();
+      res.json(result);
+    })
+
+    // delete a tolet
+    app.delete('/toLet/delete', async(req, res) => {
+      const result = await workersCollection.deleteOne({_id: ObjectId(req.query.id)});
+      res.json(result)
+    })
+
     // get tolets for customers & admin
     app.get('/toLets', async(req, res) => {
       let result;
