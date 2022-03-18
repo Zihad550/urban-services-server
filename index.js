@@ -38,7 +38,6 @@ async function verifyIdToken(req, res, next){
       try{
         const decodedUser = await admin.auth().verifyIdToken(idToken);
         req.decodedUserEmail = decodedUser.email;
-        console.log(decodedUser)
       }
       catch{
 
@@ -124,16 +123,23 @@ async function run() {
     // get available workers with role & free workers & tolets
     app.get('/workers', async(req, res) => {
       console.log(req.query.role)
+      console.log(req.query.filter)
       let result;
-      if(req.query.role === 'undefined'){
+      if(req.query.role === 'undefined' && req.query.filter === ''){
         console.log('inside')
         result = await workersCollection.find({category: {$ne: 'toLet'}}).toArray()
       }
-      else if(req.query.role === 'tolet'){
-        result = await workersCollection.find({category: 'tolet'}).toArray();
+      else if(req.query.role === 'undefined' && req.query.filter){
+        result = await workersCollection.find({$and: [{category: {$ne: 'toLet'}}, {$or: [{skill: req.query.filter},{workingStatus: req.query.filter}]}]}).toArray()
       }
-      else{
+      else if(req.query.role === 'toLet'){
+        result = await workersCollection.find({$and: [{applicationStatus: 'Approved'},{category: 'toLet'}]}).toArray();
+      }
+      else if(req.query.role !== 'toLet' && req.query.filter === '') {
         result = await workersCollection.find({category: req.query.role}).toArray();
+      }
+      else {
+        result = await workersCollection.find({$and: [{category: req.query.role}, {$or: [{skill: req.query.filter},{workingStatus: req.query.filter}]}]}).toArray()
       }
       res.json(result)
     })
@@ -260,7 +266,6 @@ async function run() {
 
     // work request
     app.get('/work', verifyIdToken, async(req, res) => {
-      console.log(req.decodedUserEmail, req.query.email)
       if(req.decodedUserEmail === req.query.email){
         const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
       res.json(result)
@@ -273,11 +278,32 @@ async function run() {
 
 
     //  tolet routes 
-    // get tolets for customers
+    // get tolets for customers & admin
     app.get('/toLets', async(req, res) => {
-      const result = await workersCollection.find({$and: [{email: req.query.email}, {category: 'toLet'}]}).toArray();
+      let result;
+      console.log(req.query.status)
+      if(req.query.status === 'Pending'){
+        result = await workersCollection.find({$and: [{category: 'toLet'}, {$or: [{applicationStatus: 'Pending'}, {applicationStatus: {$exists: false}}]}]}).toArray();
+      }else{
+        result = await workersCollection.find({$and: [{email: req.query.email}, {category: 'toLet'}]}).toArray();
+      }
       res.json(result)
     })
+
+    // approve toLet applications
+    app.put('/toLet', async(req, res) => {
+      const result = await workersCollection.updateOne({_id: ObjectId(req.body.id)}, {$set: {applicationStatus: 'Approved'}});
+      res.json(result)
+    })
+
+    // delete toLet Application
+    app.delete('/toLet', async(req, res) => {
+      const result = await workersCollection.deleteOne({_id: ObjectId(req.body.id)});
+      res.json(result)
+    })
+
+
+
 
     
   } finally {
