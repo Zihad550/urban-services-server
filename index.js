@@ -58,7 +58,7 @@ async function run() {
     const jobApplicationsCollection = database.collection('jobApplications')
 
     // user routes
-    // check if the user is admin
+    // get saved user
     app.get("/users/:email", async (req, res) => {
       const email = req.params.email;
       const user = await usersCollection.findOne({ email });
@@ -148,8 +148,10 @@ async function run() {
 
     // delete worker
     app.delete('/workers', async(req, res) => {
+      console.log(req.query.id)
       const result = await workersCollection.deleteOne({_id: ObjectId(req.query.id)});
       res.json(result)
+
     });
 
 
@@ -259,14 +261,9 @@ async function run() {
     });
 
     // work request
-    app.get('/work', verifyIdToken, async(req, res) => {
-      if(req.decodedUserEmail === req.query.email){
+    app.get('/work', async(req, res) => {
         const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
       res.json(result)
-      }
-      else{
-        res.status(401).json({message: 'user not authorized'})
-      }
       
     });
 
