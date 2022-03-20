@@ -167,7 +167,7 @@ async function run() {
         result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Free'}})
       }
       const result2 = await hiredCollection.updateOne({_id: ObjectId(id)}, {$set: {workingStatus: status}})
-      res.json({...result1, ...result2})
+      res.json({message: 'Updated'})
     })
 
     // all workers
