@@ -160,9 +160,10 @@ async function run() {
     app.put('/workingStatus', async(req, res) => {
       const {email, status, id} = req.body;
       let result1;
-      if(status === 'Working' || status === 'Not Working'){
+      if(status === 'Working' || status === 'Not Working' || status === 'Busy'){
         result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Busy'}});
-      }else{
+      } 
+      else{
         result1 = await workersCollection.updateOne({email}, {$set: {workingStatus: 'Free'}})
       }
       const result2 = await hiredCollection.updateOne({_id: ObjectId(id)}, {$set: {workingStatus: status}})
