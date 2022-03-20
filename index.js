@@ -150,7 +150,8 @@ async function run() {
     app.delete('/workers', async(req, res) => {
       console.log(req.query.id)
       const result = await workersCollection.deleteOne({_id: ObjectId(req.query.id)});
-      res.json(result)
+      const result2 = await usersCollection.deleteOne({email: req.query.email});
+      res.json({...result, result2})
 
     });
 
