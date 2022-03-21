@@ -148,10 +148,11 @@ async function run() {
 
     // delete worker
     app.delete('/workers', async(req, res) => {
-      console.log(req.query.id)
-      const result = await workersCollection.deleteOne({_id: ObjectId(req.query.id)});
+      console.log(req.query.id);
+      console.log(req.query.email);
+      const result = await workersCollection.deleteOne({email: req.query.email});
       const result2 = await usersCollection.deleteOne({email: req.query.email});
-      res.json({...result, result2})
+      res.json({...result})
 
     });
 
@@ -240,10 +241,17 @@ async function run() {
     // update application status
     app.put('/application', async(req, res) => {
       const worker = req.body;
-      const result1 = await jobApplicationsCollection.updateOne({ email:worker.email }, {$set: {applicationStatus: 'approved'}})
-      const result2 = await usersCollection.updateOne({email: worker.email}, {$set: {role: 'worker'}});
-      const result3 = await workersCollection.insertOne(worker)
-      res.json({...result1, ...result2, ...result3})
+      const {name, email, phone, location, experience, skill, category, src, workingStatus} = worker;
+      console.log(worker)
+      const result1 = await jobApplicationsCollection.updateOne({ email: worker.email }, {$set: {applicationStatus: 'approved'}})
+      let result2;
+      let result3;
+      console.log(result1)
+      if(result1.modifiedCount > 0){
+        result2 = await usersCollection.updateOne({email: worker.email}, {$set: {role: 'worker'}});
+        result3 = await workersCollection.updateOne({email: worker.email}, {$set: {name, email, phone, location, experience, skill, category, src, workingStatus: 'Free'}}, {upsert: true});
+      }
+      res.json({...result1, ...result2, ...result3});
     })
 
     // delete application
