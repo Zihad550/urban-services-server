@@ -56,6 +56,7 @@ async function run() {
     const servicesCollection = database.collection('services');
     const hiredCollection = database.collection('hired');
     const jobApplicationsCollection = database.collection('jobApplications')
+    const messagesCollection = database.collection('messages')
 
     // user routes
     // get saved user
@@ -314,6 +315,19 @@ async function run() {
       res.json(result)
     })
 
+
+    // customer messages
+    // get all message for admins
+    app.get('/messages', async(req, res) => {
+      const result = await messagesCollection.find({}).toArray();
+      res.json(result);
+    })
+
+    // save message
+    app.post('/messages', async(req, res) => {
+      const result = await messagesCollection.insertOne(req.body);
+      res.json(result);
+    })
 
 
 
