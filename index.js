@@ -272,9 +272,15 @@ async function run() {
     });
 
     // work request
-    app.get('/work', async(req, res) => {
+    app.get('/work',verifyIdToken, async(req, res) => {
+      console.log(req.decodedUserEmail)
+       if(req.decodedUserEmail === req.query.email){
         const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
-      res.json(result)
+        res.json(result)
+       }
+       else{
+         res.json({message: 'user not authorized'})
+       }
       
     });
 
