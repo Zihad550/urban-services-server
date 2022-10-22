@@ -32,7 +32,6 @@ const client = new MongoClient(process.env.URI, {
 
 // verify user with id token
 async function verifyIdToken(req, res, next){
-  console.log(req)
     if(req.headers?.authorization?.startsWith('Bearer ')){
       const idToken = req.headers.authorization.split(' ')[1]
       try{
@@ -149,8 +148,6 @@ async function run() {
 
     // delete worker
     app.delete('/workers', async(req, res) => {
-      console.log(req.query.id);
-      console.log(req.query.email);
       const result = await workersCollection.deleteOne({email: req.query.email});
       const result2 = await usersCollection.deleteOne({email: req.query.email});
       res.json({...result})
@@ -243,11 +240,9 @@ async function run() {
     app.put('/application', async(req, res) => {
       const worker = req.body;
       const {name, email, phone, location, experience, skill, category, src, workingStatus} = worker;
-      console.log(worker)
       const result1 = await jobApplicationsCollection.updateOne({ email: worker.email }, {$set: {applicationStatus: 'approved'}})
       let result2;
       let result3;
-      console.log(result1)
       if(result1.modifiedCount > 0){
         result2 = await usersCollection.updateOne({email: worker.email}, {$set: {role: 'worker'}});
         result3 = await workersCollection.updateOne({email: worker.email}, {$set: {name, email, phone, location, experience, skill, category, src, workingStatus: 'Free'}}, {upsert: true});
@@ -273,7 +268,6 @@ async function run() {
 
     // work request
     app.get('/work',verifyIdToken, async(req, res) => {
-      console.log(req.decodedUserEmail)
        if(req.decodedUserEmail === req.query.email){
         const result = await hiredCollection.find({workerEmail: req.query.email}).toArray();
         res.json(result)
@@ -339,10 +333,6 @@ async function run() {
 
     
   } finally {
-  }
-}
-run().catch(console.dir);
-
 app.get("/", (req, res) => {
   res.send("Welcome to Urban services server");
 });
@@ -350,3 +340,7 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log("port running at localhost:", port);
 });
+  }
+}
+run().catch(console.dir);
+
