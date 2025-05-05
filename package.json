@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node dist/app.js",
+    "dev": "tsnd --respawn --transpile-only src/app.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,11 @@
   },
   "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4",
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/express-fileupload": "^1.5.1",
+    "nodemon": "^3.1.10",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
   }
 }
