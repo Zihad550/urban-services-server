@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
 import fileUpload from "express-fileupload";
@@ -525,7 +525,7 @@ async function run() {
     app.listen(port, () => {
       console.log("port running at localhost:", port);
     });
-    app.use((err, req, res, next) => {
+    app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
       console.log(err);
       res.status(500).json({
         err,
