@@ -3,7 +3,6 @@ import cors from "cors";
 import { MongoClient } from "mongodb";
 import fileUpload from "express-fileupload";
 import admin, { ServiceAccount } from "firebase-admin";
-// import serviceAccount from "../service-account.json";
 import serviceAccount from "../service-account.json";
 import config from "./app/config";
 import auth from "./app/middlewares/auth";
@@ -13,7 +12,6 @@ import catchAsync from "./app/utils/catchAsync";
 const app = express();
 
 const port = config.port || 8000;
-// import cert from "./firebase-cert.json";
 
 //  firebase admin initialization
 admin.initializeApp({
@@ -526,6 +524,13 @@ async function run() {
 
     app.listen(port, () => {
       console.log("port running at localhost:", port);
+    });
+    app.use((err, req, res, next) => {
+      console.log(err);
+      res.status(500).json({
+        err,
+        message: "Unauthorized",
+      });
     });
   }
 }
