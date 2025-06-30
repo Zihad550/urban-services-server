@@ -3,7 +3,7 @@ import cors from "cors";
 import { MongoClient } from "mongodb";
 import fileUpload from "express-fileupload";
 import admin, { ServiceAccount } from "firebase-admin";
-import serviceAccount from "../service-account.json";
+// import serviceAccount from "../service-account.json";
 import config from "./app/config";
 import auth from "./app/middlewares/auth";
 import useMongoId from "./app/utils/useMongoId";
@@ -15,7 +15,9 @@ const port = config.port || 8000;
 
 //  firebase admin initialization
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as ServiceAccount),
+  credential: admin.credential.cert(
+    JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT as string) as ServiceAccount,
+  ),
 });
 
 // middle ware
@@ -526,7 +528,6 @@ async function run() {
       console.log("port running at localhost:", port);
     });
     app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
-      console.log(err);
       res.status(500).json({
         err,
         message: "Unauthorized",
